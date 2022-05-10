@@ -1,6 +1,6 @@
 import tkinter as tk
 import timeit
-import threading
+from threading import Thread
 import tkinter.messagebox as msg
 import requests
 import sys
@@ -8,26 +8,32 @@ import os
 
 
 def resource_path(relative_path):
+    # If compiled
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
 
 
 def smash():
-    threading.Thread(target=smashThread).start()
+    # First thing is to disable the button
     smashButton["state"] = tk.DISABLED
+    # Run the smasher in another thread
+    Thread(target=smashThread).start()
 
 
 def smashThread():
     try:
-        global count
-        link = linkEntry.get()
+        # Get the link
+        link: str = linkEntry.get()
+        # If no link entered
         if link == "":
             msg.showwarning(title="Attention", message="please enter a link")
             smashButton["state"] = tk.NORMAL
             return
+
+        # Get the form spam #
         try:
-            num = int(numEntry.get())
+            num: int = int(numEntry.get())
             if num < 0 or num > 1000:
                 msg.showwarning(title="Attention", message="please enter number between 1-1000")
                 smashButton["state"] = tk.NORMAL
@@ -37,25 +43,15 @@ def smashThread():
             smashButton["state"] = tk.NORMAL
             return
 
-        # getting the entries:
-        for i in range(len(entries)):
-            if entries[i].get() != "" and values[i].get():
-                payload[entries[i].get()] = values[i].get()
-
         # Start the timer
         start = timeit.default_timer()
 
-        count = 0
-
-        for _ in range(num // 10):
-            threading.Thread(target=spam).start()
-
-        for _ in range(num % 10):
-            res = requests.post(link, data=payload)
-            if res.status_code == 200:
-                count += 1
-        while count < num + 1:
-            pass
+        # Create a thread pool (don't exceed 50 threads, to respect Google servers)
+        with ThreadPoolExecutor(max_workers=min(50, num)) as e:
+            # Send this many forms
+            for i in range(num):
+                # Execute the forms API
+                e.submit(send_form(link))
 
         # Stop the timer and show the info message
         msg.showinfo(title="finished",
@@ -64,31 +60,6 @@ def smashThread():
     except:
         msg.showerror(title="Error", message="Error, Please Try Again.")
         return
-
-
-def addEntry():
-    global counter
-    if counter < 21:
-        entry = tk.Entry(entriesFrame, width=40, borderwidth=2)
-        entry.grid(row=counter, column=0)
-        val = tk.Entry(entriesFrame, width=40, borderwidth=2)
-        val.grid(row=counter, column=1)
-        values.append(val)
-        entries.append(entry)
-        counter += 1
-    else:
-        msg.showwarning(title="Attention", message="20 entries is the max")
-
-
-def removeEntry():
-    global entries, values
-    global counter
-    if len(entries) > 1:
-        entries[len(entries) - 1].destroy()
-        entries.pop()
-        values[len(values) - 1].destroy()
-        values.pop()
-        counter -= 1
 
 
 # Init GUI
