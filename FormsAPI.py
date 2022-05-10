@@ -3,7 +3,6 @@ from html_form_to_dict import html_form_to_dict
 from re import search
 from json import loads
 from random import random
-from concurrent.futures import ThreadPoolExecutor
 
 REGEX = r"var FB_PUBLIC_LOAD_DATA_ = (.*);"
 
