@@ -37,26 +37,16 @@ def smashThread():
             smashButton["state"] = tk.NORMAL
             return
 
-        count = 1
-
-        def spam():
-            for i in range(10):
-                res = requests.post(link, data=payload)
-                global count
-                if res.status_code == 200:
-                    count += 1
-                if count > num + 1:
-                    return
-
-        link = link.replace("/d/e/", "/u/0/d/e/")
-        link = link.replace("/viewform", "/formResponse")
-        payload = {}
         # getting the entries:
         for i in range(len(entries)):
             if entries[i].get() != "" and values[i].get():
                 payload[entries[i].get()] = values[i].get()
 
+        # Start the timer
         start = timeit.default_timer()
+
+        count = 0
+
         for _ in range(num // 10):
             threading.Thread(target=spam).start()
 
@@ -66,6 +56,8 @@ def smashThread():
                 count += 1
         while count < num + 1:
             pass
+
+        # Stop the timer and show the info message
         msg.showinfo(title="finished",
                      message=f"form spammed {count - 1} times in {timeit.default_timer() - start} seconds")
         smashButton["state"] = tk.NORMAL
@@ -99,51 +91,32 @@ def removeEntry():
         counter -= 1
 
 
-counter = 1
+# Init GUI
 root = tk.Tk()
 root.title("Google Forms Flooder")
 root.iconbitmap(resource_path("icon.ico"))
-root.geometry("500x670")
+root.geometry("500x200")
 root.resizable(width=False, height=False)
 
-entriesFrame = tk.LabelFrame(root, text="entries : values")
-entriesFrame.pack(side=tk.TOP)
-
-entries = []
-e = tk.Entry(entriesFrame, width=40, borderwidth=2)
-e.grid(row=0, column=0)
-entries.append(e)
-
-values = []
-val = tk.Entry(entriesFrame, width=40, borderwidth=2)
-val.grid(row=0, column=1)
-values.append(val)
-
-numFrame = tk.LabelFrame(root, width=20, text="number")
-numFrame.place(x=150, y=470)
-
-linkFrame = tk.LabelFrame(root, width=100, text="link")
-linkFrame.place(x=75, y=520)
-
-text = tk.Label(linkFrame, text="Form's Link:")
+# Num of answers
+numFrame = tk.LabelFrame(root, text="Number")
+numFrame.place(x=20, y=10)
+text = tk.Label(numFrame, text="# Of Answers:")
 text.grid(row=0, column=0)
-
-linkEntry = tk.Entry(linkFrame, width=50, borderwidth=2)
-linkEntry.grid(row=0, column=1)
-
 numEntry = tk.Entry(numFrame, width=10, borderwidth=2)
 numEntry.grid(row=0, column=1)
 
-text = tk.Label(numFrame, text="Number Of Answers:")
+# Link
+linkFrame = tk.LabelFrame(root, text="Link")
+linkFrame.place(x=20, y=60)
+text = tk.Label(linkFrame, text="G-Forms Link:")
 text.grid(row=0, column=0)
+linkEntry = tk.Entry(linkFrame, width=50, borderwidth=2)
+linkEntry.grid(row=0, column=1)
 
-add = tk.Button(root, text="add entry", width=20, height=2, command=addEntry)
-add.place(x=70, y=570)
+# Button
+smashButton = tk.Button(root, text="Smash!", width=40, height=2, command=smash, borderwidth=3)
+smashButton.place(x=100, y=130)
 
-remove = tk.Button(root, text="remove entry", width=20, height=2, command=removeEntry)
-remove.place(x=300, y=570)
-
-smashButton = tk.Button(root, text="smash", width=40, height=2, command=smash)
-smashButton.place(x=100, y=620)
-
+# Start GUI event loop
 root.mainloop()
